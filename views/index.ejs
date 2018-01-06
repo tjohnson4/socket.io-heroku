@@ -18,17 +18,16 @@ var urlParams = {};
  })();
 var io_socket;
 var guid;
-var opts = {'path': '/engine.io', 'forceJSONP': true};
-var sock_url = 'http://flingo.tv/sync?auth=' + urlParams['auth'];
+var opts = {};
+var sock_url = 'http://localhost';
 function connect(){
   io_socket = io.connect(sock_url, opts);
   io_socket.on('connect', function() {
-      display_message("Socket connected");
-      //display_message('Socket subscribing to '+root.cid_client);
-      if (guid){
+    display_message("Socket connected");
+    if (guid){
       io_socket.emit("subscribe", {channel_id: guid});
-      }
-      });
+    }
+  });
   io_socket.on('connecting', function() {
       display_message("Socket connecting");
       });
@@ -101,6 +100,7 @@ var do_send = function() {
   io_socket.emit(event_type, {"channel_id" : channel_id, "data" : data});
 };
 $(document).ready(function() {
+    conlsole.log("ready")
     connect();
     });
 </script>
