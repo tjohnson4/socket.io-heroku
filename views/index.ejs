@@ -1,0 +1,121 @@
+<DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>SocketIO</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script type="text/javascript" src="http://flingo.tv/js/socket.io-latest.js"></script>
+<script type="text/javascript">
+var urlParams = {};
+(function () {
+ var match,
+ pl   = /\+/g, // Regex for replacing addition symbol with a space
+ search = /([^&=]+)=?([^&]*)/g,
+ decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+ query = window.location.search.substring(1);
+ while (match = search.exec(query))
+ urlParams[decode(match[1])] = decode(match[2]);
+ })();
+var io_socket;
+var guid;
+var opts = {'path': '/engine.io', 'forceJSONP': true};
+var sock_url = 'http://flingo.tv/sync?auth=' + urlParams['auth'];
+function connect(){
+  io_socket = io.connect(sock_url, opts);
+  io_socket.on('connect', function() {
+      display_message("Socket connected");
+      //display_message('Socket subscribing to '+root.cid_client);
+      if (guid){
+      io_socket.emit("subscribe", {channel_id: guid});
+      }
+      });
+  io_socket.on('connecting', function() {
+      display_message("Socket connecting");
+      });
+  io_socket.on('connect_failed', function() {
+      display_message("Socket connect_failed");
+      });
+  io_socket.on('disconnect', function() {
+      display_message("Socket disconnect");
+      });
+  io_socket.on('error', function(msg) {
+      if(typeof msg !== 'undefined' && msg == 'Authentication Failure'){
+      display_message("Socket auth error");
+      } else {
+      display_message("Socket error");
+      }
+      });
+  io_socket.on('reconnect', function() {
+      display_message("Socket reconnect");
+      });
+  io_socket.on('reconnecting', function() {
+      display_message("Socket reconnecting");
+      });
+  io_socket.on('reconnect_failed', function() {
+      display_message("Socket reconnect_failed");
+      });
+  io_socket.on('content_change', function(msg){
+      display_message("content change event");
+      display_message(msg);
+      });
+  io_socket.on('ad_event', function(msg){
+      //display_message("ad event");
+      });
+  io_socket.on('message', function(msg){
+      display_message("message : "+msg);
+      });
+  io_socket.on('acr_obstruction', function(msg){
+      display_message("content change event");
+      display_message(msg);
+      });
+  io_socket.on('acr_trick_play', function(msg){
+      display_message("content time change event");
+      display_message(msg);
+      });
+}
+var display_message = function(msg) {
+  var text = document.getElementById("inbox").value;
+  msg = ISODateString(new Date()) + ' ' + msg;
+  document.getElementById("inbox").value = msg + "\n" + text;
+};
+var ISODateString = function(d){
+  function pad(n){return n<10 ? '0'+n : n}
+  return d.getUTCFullYear()+'-'
+    + pad(d.getUTCMonth()+1)+'-'
+    + pad(d.getUTCDate())+'T'
+    + pad(d.getUTCHours())+':'
+    + pad(d.getUTCMinutes())+':'
+    + pad(d.getUTCSeconds())+'Z';
+};
+var do_subscribe = function() {
+  guid = $("#subscribe").val();
+  console.log("guid : "+guid)
+    io_socket.emit("subscribe", {channel_id: guid});
+  display_message("Subscribed to:"+guid);
+};
+var do_send = function() {
+  var event_type = $("#event_type").val();
+  var channel_id = $("#channel_id_send").val();
+  var data = $("#data").val();
+  display_message("Send " + event_type + " to " + channel_id + ": " + data);
+  io_socket.emit(event_type, {"channel_id" : channel_id, "data" : data});
+};
+$(document).ready(function() {
+    connect();
+    });
+</script>
+</head>
+<body>
+Channel ID: <input id="subscribe" type="text" size=20 /><input type="button" onclick="do_subscribe();" value="Subscribe" /><br /><br />
+Event Type: <input id="event_type" type="text" size=20 value="message" /><br />
+Channel ID: <input id="channel_id_send" type="text" size=20 /><br />
+Data:<br />
+<textarea id="data" rows="4", cols="80"></textarea><br />
+<input type="button" onclick="do_send();" value="Send" />
+<br />
+<br />
+<br />
+Log:<br />
+<textarea id="inbox" rows="20", cols="80" readonly></textarea><br />
+</body>
+</html>
