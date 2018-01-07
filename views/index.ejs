@@ -20,42 +20,45 @@ var io_socket;
 var guid;
 var opts = {};
 var sock_url = 'http://localhost';
+var sources = {
+  youtube: 'https://www.youtube.com/watch?v=FoD28oLJUnY',
+  huluplus: 'android-app://com.hulu.plus/https/www.hulu.com/videos/975354',
+  googleplay : 'https://play.google.com/store/movies/details?id=QkDSN5dBHXY',
+  amazonprime : 'http://www.amazon.com/piv-apk-play?asin=B018GVHDW2'
+}
 function connect(){
 
   io_socket = io();
   io_socket.on('connect', function() {
-    display_message("Socket connected");
-    if (guid){
-      io_socket.emit("subscribe", {channel_id: guid});
-    }
-  });
+      display_message("Socket connected");
+      });
   io_socket.on('play_now', function(obj) {
       console.log("received message : play_now")
       display_message("message : play_now");
       display_message(JSON.stringify(obj, null, 4));
-  });
+      });
   io_socket.on('joined', function(obj) {
       console.log("received message : joined")
       display_message(obj.id+" joined the room");
       display_message(JSON.stringify(obj, null, 4));
-  });
+      });
   io_socket.on('connecting', function() {
       display_message("Socket connecting");
-  });
+      });
   io_socket.on('connect_failed', function() {
       display_message("Socket connect_failed");
-  });
+      });
 
   io_socket.on('disconnect', function() {
       display_message("Socket disconnect");
-  });
+      });
   io_socket.on('error', function(msg) {
       if(typeof msg !== 'undefined' && msg == 'Authentication Failure'){
       display_message("Socket auth error");
       } else {
       display_message("Socket error");
       }
-  });
+      });
   io_socket.on('reconnect', function() {
       display_message("Socket reconnect");
       });
@@ -81,15 +84,19 @@ var ISODateString = function(d){
     + pad(d.getUTCSeconds())+'Z';
 };
 var do_subscribe = function() { 
-    var room = $("#subscribe").val();
-    io_socket.emit("subscribe", {"room" : room });
-  display_message("Subscribed to:"+guid);
+  var room = $("#subscribe").val();
+  io_socket.emit("subscribe", {"room" : room });
+  display_message("Subscribed to:"+room);
 };
 var do_send = function() {
   var event_type = $("#event_type").val();
   var channel_id = $("#subscribe").val();
-  var data = $("#data").val();
-  io_socket.emit(event_type, { 'room' : channel_id, 'message' : data});
+  var source = $("#sources").val();
+  var link = sources[source]; 
+  io_socket.emit(event_type, { 'room' : channel_id, 'message' : {
+    'source' : source,
+    'link': link
+  }});
 };
 $(document).ready(function() {
     console.log("ready")
@@ -101,7 +108,12 @@ $(document).ready(function() {
 Room ID: <input id="subscribe" type="text" size=20 /><input type="button" onclick="do_subscribe();" value="Subscribe" /><br /><br />
 Event Type: <input id="event_type" type="text" size=20 value="request_play" /><br />
 Data:<br />
-<textarea id="data" rows="4", cols="80">{"foo": "bar"}</textarea><br />
+<select id="sources" name="sources">
+<option value="youtube">YouTube</option>
+<option value="huluplus">Hulu Plus</option>
+<option value="googleplay">Google Play</option>
+<option value="amazonprime">Amazon Prime Videos</option>
+</select>
 <input type="button" onclick="do_send();" value="Send" />
 <br />
 <br />
