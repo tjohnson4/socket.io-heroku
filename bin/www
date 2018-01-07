@@ -37,15 +37,24 @@ io.on('connection', (socket) => {
 
   socket.on('subscribe', (obj) => {
     var room = obj.room; 
-    console.log("Received message : play_now")
+    console.log("Received message : subscribe")
     socket.join(room)
     io.to(room).emit("joined", { id : socket.id, room : room});
   }) 
 
-  socket.on('request_play', (obj) => {
-    var room = obj.room; 
+  socket.on('request_connection', (obj) => {
+    console.log("Received message : connection_request")
+    socket.broadcast.to(obj.room).emit("request_connection");
+  }) 
+
+  socket.on('connection_request_received', (obj) => {
+    console.log("Received message : connection_received")
+    socket.broadcast.to(obj.room).emit("connection_request_received");
+  }) 
+  
+  socket.on('play_now', (obj) => {
     console.log("Received message : request_play", obj.message)
-    socket.broadcast.emit("play_now", obj.message);
+    socket.broadcast.to(obj.room).emit("play_now", obj.message);
   }) 
 
   socket.on('disconnect', () => console.log('Client disconnected'));
