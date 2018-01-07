@@ -30,31 +30,40 @@ server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 
+function isValidObj(obj, prop) {
+    return (obj != null && obj.hasOwnProperty(prop));
+}
 
 var io = socketIO(server);
 io.on('connection', (socket) => {
   console.log('Client connected');
 
   socket.on('subscribe', (obj) => {
-    var room = obj.room; 
-    console.log("Received message : subscribe")
-    socket.join(room)
-    io.to(room).emit("joined", { id : socket.id, room : room});
+    if (isValidObj(obj, 'room')) {
+      socket.join(obj.room)
+      io.to(obj.room).emit("joined", { id : socket.id, room : obj.room});
+    }
   }) 
 
   socket.on('request_connection', (obj) => {
-    console.log("Received message : connection_request")
-    socket.broadcast.to(obj.room).emit("request_connection");
+    if (isValidObj(obj, 'room')) {
+      console.log("Received message : connection_request")
+      socket.broadcast.to(obj.room).emit("request_connection");
+    }
   }) 
 
   socket.on('connection_request_received', (obj) => {
-    console.log("Received message : connection_received")
-    socket.broadcast.to(obj.room).emit("connection_request_received");
+    if (isValidObj(obj, 'room')) {
+      console.log("Received message : connection_received")
+      socket.broadcast.to(obj.room).emit("connection_request_received");
+    }
   }) 
   
   socket.on('play_now', (obj) => {
-    console.log("Received message : request_play", obj.message)
-    socket.broadcast.to(obj.room).emit("play_now", obj.message);
+    if (isValidObj(obj, 'room')) {
+      console.log("Received message : request_play", obj.message)
+      socket.broadcast.to(obj.room).emit("play_now", obj.message);
+    }
   }) 
 
   socket.on('disconnect', () => console.log('Client disconnected'));
