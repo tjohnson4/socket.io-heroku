@@ -45,7 +45,7 @@ io.on('connection', (socket) => {
   socket.on('request_play', (obj) => {
     var room = obj.room; 
     console.log("Received message : request_play", obj.message)
-    socket.broadcast.emit("play_now", JSON.parse(obj.message));
+    socket.broadcast.emit("play_now", obj.message);
   }) 
 
   socket.on('disconnect', () => console.log('Client disconnected'));
