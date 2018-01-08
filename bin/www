@@ -40,6 +40,7 @@ io.on('connection', (socket) => {
 
   socket.on('subscribe', (obj) => {
     if (isValidObj(obj, 'room')) {
+      console.log("Received message : subscribe")
       socket.join(obj.room)
       io.to(obj.room).emit("joined", { id : socket.id, room : obj.room});
     }
@@ -61,8 +62,15 @@ io.on('connection', (socket) => {
   
   socket.on('play_now', (obj) => {
     if (isValidObj(obj, 'room')) {
-      console.log("Received message : request_play", obj.message)
+      console.log("Received message : play_now", obj.message)
       socket.broadcast.to(obj.room).emit("play_now", obj.message);
+    }
+  }) 
+
+  socket.on('received_play_now', (obj) => {
+    if (isValidObj(obj, 'label') && isValidObj(obj, 'room')) {
+      console.log("Received message : received_play_now, label : "+obj.label)
+      socket.broadcast.to(obj.room).emit("received_play_now", obj);
     }
   }) 
 
