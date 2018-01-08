@@ -129,12 +129,12 @@ var do_send = function() {
   var room_id = $("#subscribe").val();
   var source = $("#sources").val();
   var data = sources[source]; 
-  io_socket.emit(event_type, { room : room_id, 'message' : {
+  io_socket.emit(event_type, { 
+    'room' : room_id,
     'source' : source,
     'link': data.link,
-    'label': data.label,
-    'room': room_id
-  }});
+    'label': data.label
+  });
 };
 $(document).ready(function() {
     console.log("ready")
