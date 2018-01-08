@@ -62,8 +62,8 @@ io.on('connection', (socket) => {
   
   socket.on('play_now', (obj) => {
     if (isValidObj(obj, 'room')) {
-      console.log("Received message : play_now", obj.message)
-      socket.broadcast.to(obj.room).emit("play_now", obj.message);
+      console.log("Received message : play_now", obj);
+      socket.broadcast.to(obj.room).emit("play_now", obj);
     }
   }) 
 
