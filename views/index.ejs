@@ -21,10 +21,30 @@ var guid;
 var opts = {};
 var sock_url = 'http://localhost';
 var sources = {
-  youtube: 'https://www.youtube.com/watch?v=FoD28oLJUnY',
-  huluplus: 'android-app://com.hulu.plus/https/www.hulu.com/videos/975354',
-  googleplay : 'https://play.google.com/store/movies/details?id=QkDSN5dBHXY',
-  amazonprime : 'http://www.amazon.com/piv-apk-play?asin=B018GVHDW2'
+  youtube: {
+    link : 'https://www.youtube.com/watch?v=FoD28oLJUnY',
+    label : "YouTube"
+  },
+  youtube_purchase: {
+    link : 'https://www.youtube.com/watch?v=FoD28oLJUnY',
+    label : "YouTube"
+  },
+  hulu_free: {
+    link : '975354',
+    label : 'Hulu'
+  },
+  hulu_plus: {
+    link : '975354',
+    label : 'Hulu'
+  },
+  google_play : {
+    link : 'https://play.google.com/store/movies/details?id=QkDSN5dBHXY', 
+    label : "Google Play"
+  },
+  netflix : {
+    link : 'nflx://www.netflix.com/Browse?q=action%3Dplay%26source%3Ddevice%26movieid%3Dhttp%3A%2F%2Fapi-public.netflix.com%2Fcatalog%2Ftitles%2Fmovies%2F80119234',
+    label : "Netflix"
+  }
 }
 function connect(){
 
@@ -93,21 +113,22 @@ var ISODateString = function(d){
 };
 var do_ping = function () {
   var room_id = $("#subscribe").val();
-  io_socket.emit("request_connection", {'room': room_id })
+  io_socket.emit("request_connection", { room : room_id })
 }
 var do_subscribe = function() { 
   var room = $("#subscribe").val();
-  io_socket.emit("subscribe", {"room" : room });
+  io_socket.emit("subscribe", { room : room });
   display_message("Subscribed to:"+room);
 };
 var do_send = function() {
   var event_type = $("#event_type").val();
   var room_id = $("#subscribe").val();
   var source = $("#sources").val();
-  var link = sources[source]; 
-  io_socket.emit(event_type, { 'room' : room_id, 'message' : {
+  var data = sources[source]; 
+  io_socket.emit(event_type, { room : room_id, 'message' : {
     'source' : source,
-    'link': link
+    'link': data.link,
+    'label': data.label
   }});
 };
 $(document).ready(function() {
@@ -122,9 +143,11 @@ Event Type: <input id="event_type" type="text" size=20 value="play_now" /><br />
 Data:<br />
 <select id="sources" name="sources">
 <option value="youtube">YouTube</option>
-<option value="huluplus">Hulu Plus</option>
-<option value="googleplay">Google Play</option>
-<option value="amazonprime">Amazon Prime Videos</option>
+<option value="youtube_purchase">YouTube (Purchase)</option>
+<option value="hulu_free">Hulu Free</option>
+<option value="hulu_plus">Hulu Plus</option>
+<option value="google_play">Google Play</option>
+<option value="netflix">Netflix</option>
 </select>
 <input type="button" onclick="do_send();" value="Send" />
 <input type="button" onclick="do_ping();" value="Ping" />
