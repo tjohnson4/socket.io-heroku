@@ -34,7 +34,9 @@ function isValidObj(obj, prop) {
     return (obj != null && obj.hasOwnProperty(prop));
 }
 
-var io = socketIO(server);
+var io = socketIO(server, {
+  pingTimeout : 60000
+});
 io.on('connection', (socket) => {
   console.log('Client connected');
 
