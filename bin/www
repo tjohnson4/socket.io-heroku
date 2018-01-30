@@ -35,7 +35,7 @@ function isValidObj(obj, prop) {
 }
 
 var io = socketIO(server, {
-  pingTimeout : 60000
+  pingTimeout : 30000
 });
 io.on('connection', (socket) => {
   console.log('Client connected');
