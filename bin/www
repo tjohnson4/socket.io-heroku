@@ -39,18 +39,19 @@ var io = socketIO(server, {
 });
 
 var checkForTV = (room) => {
-  var clients = io.sockets.adapter.rooms[room].sockets;   
+  var sockets = io.sockets.adapter.rooms[room].sockets;   
  
-  for (var clientId in clients ) {
-    //this is the socket of each client in the room.
-    var socket = io.sockets.connected[clientId];
+  for (var id in sockets ) {
+    var socket = io.sockets.connected[id];
   
     if (socket.role === 'tv') {
       console.log("Found TV, room : "+room);
-      socket.emit('tv_status', {connected: true});
+      return true;
       break;
     }
   }
+
+  return false;
 }
 
 io.on('connection', (socket) => {
@@ -58,19 +59,34 @@ io.on('connection', (socket) => {
 
   socket.on('subscribe', (obj) => {
     if (isValidObj(obj, 'room')) {
-
       socket.guid = obj.room;
       console.log("Received message : subscribe, id : "+socket.id)
+      socket.join(obj.room);
 
-      if (obj.hasOwnProperty('role'))
+      if (obj.hasOwnProperty('role') && obj.role === 'mobile') {
         socket.role = obj.role;
-      else 
+        // check for tv in room
+        var sockets = io.sockets.adapter.rooms[room].sockets;   
+        var connected = false
+       
+        for (var id in sockets ) {
+          var roomSocket = io.sockets.connected[id];
+          if (roomSocket.role === 'tv') {
+            connected = true;
+            break;
+          }
+        }
+
+        io.to(obj.room).emit("joined", { id : socket.id, room : obj.room, role : socket.role, tv_status : {
+          connected : connected 
+        }});
+      } else {
         socket.role = 'tv';
 
-      socket.join(obj.room)
-      io.to(obj.room).emit("joined", { id : socket.id, room : obj.room, role : socket.role});
-      
-      checkForTV(obj.room);   
+        io.to(obj.room).emit("tv_status", {
+          connected : true
+        });
+      }
     }
   }) 
 
