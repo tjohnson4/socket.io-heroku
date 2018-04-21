@@ -106,6 +106,7 @@ io.on('connection', (socket) => {
       socket.broadcast.to(socket.guid).emit("tv_status", {connected:false});
     }
     console.log('Client disconnected');
+  });
 });
 
   /**
