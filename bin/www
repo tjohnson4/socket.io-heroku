@@ -122,10 +122,11 @@ io.on('connection', (socket) => {
   }) 
 
   socket.on('disconnect', ()  => {
+    console.log('Client disconnected, socket.role : '+socket.role+", room : "+socket.guid);
     if (socket.role === 'tv') {
+      socket.broadcast.to(socket.guid).emit("tv_status", {connected : false});
         io.to(socket.guid).emit("tv_status", { connected : false });
     }
-    console.log('Client disconnected, socket.role : '+socket.role+", room : "+socket.guid);
   });
 });
 
