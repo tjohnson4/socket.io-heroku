@@ -81,7 +81,7 @@ function connect(){
   io_socket.on('connect_failed', function() {
       display_message("Socket connect_failed");
       });
-  io_socket.on('tv_status', function() {
+  io_socket.on('tv_status', function(obj) {
       display_message("TV Status, connected : "+obj.connected);
       });
   io_socket.on('disconnect', function() {
