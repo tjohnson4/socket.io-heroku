@@ -121,8 +121,9 @@ var do_ping = function () {
 }
 var do_subscribe = function() { 
   var room = $("#subscribe").val();
-  io_socket.emit("subscribe", { room : room });
-  display_message("Subscribed to:"+room);
+  var client = $("#clients").val();
+  io_socket.emit("subscribe", { room : room, role : client });
+  display_message("Subscribed to:"+room+", client : "+client);
 };
 var do_send = function() {
   var event_type = $("#event_type").val();
@@ -153,6 +154,10 @@ Data:<br />
 <option value="hulu_plus">Hulu Plus</option>
 <option value="google_play">Google Play</option>
 <option value="netflix">Netflix</option>
+</select>
+<select id="clients" name="clients">
+<option value="mobile">Mobile</option>
+<option value="tv">TV</option>
 </select>
 <input type="button" onclick="do_send();" value="Send" />
 <input type="button" onclick="do_ping();" value="Ping" />
