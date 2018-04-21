@@ -83,6 +83,9 @@ io.on('connection', (socket) => {
       } else {
         socket.role = 'tv';
 
+        io.to(obj.room).emit("joined", { id : socket.id, room : obj.room, role : socket.role, tv_status : {
+          connected : true 
+        }});
         io.to(obj.room).emit("tv_status", {
           connected : true
         });
@@ -120,7 +123,6 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', ()  => {
     if (socket.role === 'tv') {
-
       socket.broadcast.to(socket.guid).emit("tv_status", {connected:false});
     }
     console.log('Client disconnected');
