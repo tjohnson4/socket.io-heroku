@@ -123,8 +123,7 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', ()  => {
     if (socket.role === 'tv') {
-        io.to(socket.guid).emit("tv_status", { connected : connected 
-        });
+        io.to(socket.guid).emit("tv_status", { connected : false });
     }
     console.log('Client disconnected, socket.role : '+socket.role+", room : "+socket.guid);
   });
