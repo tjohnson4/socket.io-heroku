@@ -39,13 +39,14 @@ var io = socketIO(server, {
 });
 
 var checkForTV = (room) => {
-  var clients = room.sockets;   
+  var clients = io.sockets.adapter.rooms[room].sockets;   
  
   for (var clientId in clients ) {
     //this is the socket of each client in the room.
     var socket = io.sockets.connected[clientId];
   
     if (socket.role === 'tv') {
+      console.log("Found TV, room : "+room);
       socket.emit('tv_status', {connected: true});
       break;
     }
@@ -67,8 +68,9 @@ io.on('connection', (socket) => {
         socket.role = 'tv';
 
       socket.join(obj.room)
-      io.to(obj.room).emit("joined", { id : socket.id, room : obj.room});
-      checkForTV(io.sockets.adapter.rooms[obj.room]);   
+      io.to(obj.room).emit("joined", { id : socket.id, room : obj.room, role : socket.role});
+      
+      checkForTV(obj.room);   
     }
   }) 
 
