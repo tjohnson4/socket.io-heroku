@@ -31,20 +31,44 @@ server.on('error', onError);
 server.on('listening', onListening);
 
 function isValidObj(obj, prop) {
-    return (obj != null && obj.hasOwnProperty(prop));
+  return (obj != null && obj.hasOwnProperty(prop));
 }
 
 var io = socketIO(server, {
   pingTimeout : 30000
 });
+
+var checkForTV = (room) => {
+  var clients = room.sockets;   
+ 
+  for (var clientId in clients ) {
+    //this is the socket of each client in the room.
+    var socket = io.sockets.connected[clientId];
+  
+    if (socket.role === 'tv') {
+      socket.emit('tv_status', {connected: true});
+      break;
+    }
+  }
+}
+
 io.on('connection', (socket) => {
   console.log('Client connected');
 
   socket.on('subscribe', (obj) => {
     if (isValidObj(obj, 'room')) {
+
+      socket.guid = obj.room;
       console.log("Received message : subscribe, id : "+socket.id)
+
+      if (obj.hasOwnProperty('role'))
+        socket.role = obj.role;
+      else 
+        socket.role = 'tv';
+
       socket.join(obj.room)
       io.to(obj.room).emit("joined", { id : socket.id, room : obj.room});
+      checkForTV(io.sockets.adapter.rooms[obj.room]);   
     }
   }) 
 
@@ -61,7 +85,7 @@ io.on('connection', (socket) => {
       socket.broadcast.to(obj.room).emit("connection_request_received");
     }
   }) 
-  
+
   socket.on('play_now', (obj) => {
     if (isValidObj(obj, 'room')) {
       console.log("Received message : play_now", obj);
@@ -76,66 +100,70 @@ io.on('connection', (socket) => {
     }
   }) 
 
-  socket.on('disconnect', () => console.log('Client disconnected'));
-  setInterval(() => io.emit('time', new Date().toTimeString()), 1000);
+  socket.on('disconnect', ()  => {
+    if (socket.role === 'tv') {
+
+      socket.broadcast.to(socket.guid).emit("tv_status", {connected:false});
+    }
+    console.log('Client disconnected');
 });
 
-/**
- * Normalize a port into a number, string, or false.
- */
+  /**
+   * Normalize a port into a number, string, or false.
+   */
 
-function normalizePort(val) {
-  var port = parseInt(val, 10);
+  function normalizePort(val) {
+    var port = parseInt(val, 10);
 
-  if (isNaN(port)) {
-    // named pipe
-    return val;
+    if (isNaN(port)) {
+      // named pipe
+      return val;
+    }
+
+    if (port >= 0) {
+      // port number
+      return port;
+    }
+
+    return false;
   }
 
-  if (port >= 0) {
-    // port number
-    return port;
-  }
+  /**
+   * Event listener for HTTP server "error" event.
+   */
 
-  return false;
-}
-
-/**
- * Event listener for HTTP server "error" event.
- */
-
-function onError(error) {
-  if (error.syscall !== 'listen') {
-    throw error;
-  }
-
-  var bind = typeof port === 'string'
-    ? 'Pipe ' + port
-    : 'Port ' + port;
-
-  // handle specific listen errors with friendly messages
-  switch (error.code) {
-    case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
-      process.exit(1);
-      break;
-    case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
-      process.exit(1);
-      break;
-    default:
+  function onError(error) {
+    if (error.syscall !== 'listen') {
       throw error;
+    }
+
+    var bind = typeof port === 'string'
+      ? 'Pipe ' + port
+      : 'Port ' + port;
+
+    // handle specific listen errors with friendly messages
+    switch (error.code) {
+      case 'EACCES':
+        console.error(bind + ' requires elevated privileges');
+        process.exit(1);
+        break;
+      case 'EADDRINUSE':
+        console.error(bind + ' is already in use');
+        process.exit(1);
+        break;
+      default:
+        throw error;
+    }
   }
-}
 
-/**
- * Event listener for HTTP server "listening" event.
- */
+  /**
+   * Event listener for HTTP server "listening" event.
+   */
 
-function onListening() {
-  var addr = server.address();
-  var bind = typeof addr === 'string'
-    ? 'pipe ' + addr
-    : 'port ' + addr.port;
-  debug('Listening on ' + bind);
-}
+  function onListening() {
+    var addr = server.address();
+    var bind = typeof addr === 'string'
+      ? 'pipe ' + addr
+      : 'port ' + addr.port;
+    debug('Listening on ' + bind);
+  }
